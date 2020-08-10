@@ -1,7 +1,6 @@
 import axios from 'axios'
 
 export async function getPokemonsFromApi(limit) {
-  console.log(limit)
   return await axios
     .get(`https://pokeapi.co/api/v2/pokemon/?limit=${limit}`)
     .then(async (result) => {

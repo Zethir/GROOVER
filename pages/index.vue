@@ -6,9 +6,43 @@
       </b-navbar-brand>
     </b-navbar>
     <div class="container">
-      <div class="row">
+      <div class="row mt-3">
+        <b-col sm="4">
+          <b-form-group
+            label-cols-sm="5"
+            label="Search Pokemons:"
+            label-for="input-search"
+          >
+            <b-form-input
+              id="input-search"
+              v-model="search"
+              placeholder="Enter your search"
+            >
+            </b-form-input>
+          </b-form-group>
+        </b-col>
+        <b-col sm="4">
+          <b-form-group
+            label-cols-sm="5"
+            label="Select Type:"
+            label-for="select-type"
+          >
+            <b-form-select id="select-type" v-model="selectedType">
+              <b-form-select-option :value="null">All</b-form-select-option>
+              <b-form-select-option
+                v-for="type in types"
+                :key="type.name"
+                :value="type.name"
+              >
+                {{ type.name }}
+              </b-form-select-option>
+            </b-form-select>
+          </b-form-group>
+        </b-col>
+      </div>
+      <div class="row mb-3">
         <div
-          v-for="pokemon in pokemons"
+          v-for="pokemon in filteredPokemons"
           :key="pokemon.id"
           class="col-md-3 mt-3"
         >
@@ -25,8 +59,17 @@
               <p>
                 <strong>Base Experience: </strong>{{ pokemon.base_experience }}
               </p>
+              <p><strong>Type: </strong>{{ pokemon.types}}</p>
             </div>
           </b-card>
+        </div>
+      </div>
+      <div
+        v-if="pokemons.length < 26"
+        class="row mb-5 d-flex justify-content-center"
+      >
+        <div class="spinner-grow text-primary" role="status">
+          <span class="sr-only">Loading...</span>
         </div>
       </div>
     </div>
@@ -42,19 +85,40 @@ export default {
   middleware: 'preFetchPokemons',
 
   data() {
-    return {}
+    return {
+      search: '',
+      selectedType: '',
+    }
   },
 
   computed: {
-    ...mapState(['pokemons']),
+    ...mapState(['pokemons', 'types']),
+    filteredPokemons() {
+      let pokes = this.pokemons
+      let searchString = this.search
+
+      if (!searchString) {
+        return pokes
+      }
+      searchString = searchString.trim().toLowerCase()
+
+      pokes = pokes.filter((pokemon) => {
+        if (pokemon.name.toLowerCase().includes(searchString)) {
+          return pokemon
+        }
+      })
+
+      return pokes
+    },
   },
 
   mounted() {
     this.fetchPokemons(150)
+    this.fetchTypes()
   },
 
   methods: {
-    ...mapActions(['fetchPokemons']),
+    ...mapActions(['fetchPokemons', 'fetchTypes']),
   },
 }
 </script>
@@ -74,5 +138,9 @@ export default {
 
 .font-size-card {
   font-size: 1.2rem;
+}
+
+.text-primary {
+  color: #2a75bb !important;
 }
 </style>
