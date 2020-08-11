@@ -8,18 +8,13 @@
     <div class="container">
       <div class="row mt-3">
         <b-col sm="4">
-          <b-form-group
-            label-cols-sm="5"
-            label="Search Pokemons:"
-            label-for="input-search"
+          <SearchInput
+            search-label="Search Pokemons:"
+            search-id="input-search"
+            search-placeholder="Search your pokemons"
+            @search="setPokemonSearch"
           >
-            <b-form-input
-              id="input-search"
-              v-model="search"
-              placeholder="Enter your search"
-            >
-            </b-form-input>
-          </b-form-group>
+          </SearchInput>
         </b-col>
         <b-col sm="4">
           <b-form-group
@@ -39,31 +34,17 @@
             </b-form-select>
           </b-form-group>
         </b-col>
-      </div>
-      <div class="row mb-3">
-        <div
-          v-for="pokemon in filteredPokemons"
-          :key="pokemon.id"
-          class="col-md-3 mt-3"
-        >
-          <b-card
-            :header="pokemon.name.toUpperCase()"
-            header-bg-variant="warning"
-            align="center"
-            header-text-variant="white"
-            class="rounded border card-width h4"
+        <b-col sm="4">
+          <SearchInput
+            search-label="Min Base Experience:"
+            search-id="input-experience"
+            search-placeholder="Enter min base experience"
+            @search="setMinExperience"
           >
-            <div class="font-size-card" align="left">
-              <p><strong>Height: </strong>{{ pokemon.height }}</p>
-              <p><strong>Weight: </strong>{{ pokemon.weight }}</p>
-              <p>
-                <strong>Base Experience: </strong>{{ pokemon.base_experience }}
-              </p>
-              <p><strong>Type: </strong>{{ mapTypes(pokemon.types) }}</p>
-            </div>
-          </b-card>
-        </div>
+          </SearchInput>
+        </b-col>
       </div>
+      <PokemonCards :filtered-pokemons="filteredPokemons"></PokemonCards>
       <div
         v-if="pokemons.length < 26"
         class="row mb-5 d-flex justify-content-center"
@@ -78,15 +59,23 @@
 
 <script>
 import { mapState, mapActions } from 'vuex'
+import SearchInput from '@/components/SearchInput'
+import PokemonCards from '@/pages/PokemonCards'
 
 export default {
   name: 'Main',
 
   middleware: 'preFetchPokemons',
 
+  components: {
+    SearchInput,
+    PokemonCards,
+  },
+
   data() {
     return {
       search: '',
+      minExperience: '',
       selectedType: '',
     }
   },
@@ -97,6 +86,7 @@ export default {
       let pokes = this.pokemons
       let searchString = this.search
       let selectedType = this.selectedType
+      let minExperience = this.minExperience
 
       if (searchString) {
         searchString = searchString.trim().toLowerCase()
@@ -106,7 +96,8 @@ export default {
             return pokemon
           }
         })
-      } else if (selectedType) {
+      }
+      if (selectedType) {
         selectedType = selectedType.trim().toLowerCase()
 
         pokes = pokes.filter((pokemon) => {
@@ -119,6 +110,20 @@ export default {
           }
         })
       }
+      if (minExperience) {
+        minExperience = Number(minExperience)
+
+        pokes = pokes.filter((pokemon) => {
+          if (pokemon.base_experience >= minExperience) {
+            return pokemon
+          }
+        })
+
+        pokes.sort(
+          (a, b) =>
+            parseFloat(a.base_experience) - parseFloat(b.base_experience)
+        )
+      }
       return pokes
     },
   },
@@ -130,12 +135,11 @@ export default {
 
   methods: {
     ...mapActions(['fetchPokemons', 'fetchTypes']),
-    mapTypes(types) {
-      return types
-        .map((elem) => {
-          return elem.type.name
-        })
-        .join(',')
+    setPokemonSearch(event) {
+      this.search = event
+    },
+    setMinExperience(event) {
+      this.minExperience = event
     },
   },
 }
@@ -152,10 +156,6 @@ export default {
 
 .bg-light {
   background-color: #2a75bb !important;
-}
-
-.font-size-card {
-  font-size: 1.2rem;
 }
 
 .text-primary {
