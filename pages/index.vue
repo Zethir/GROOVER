@@ -59,7 +59,7 @@
               <p>
                 <strong>Base Experience: </strong>{{ pokemon.base_experience }}
               </p>
-              <p><strong>Type: </strong>{{ pokemon.types}}</p>
+              <p><strong>Type: </strong>{{ mapTypes(pokemon.types) }}</p>
             </div>
           </b-card>
         </div>
@@ -96,18 +96,29 @@ export default {
     filteredPokemons() {
       let pokes = this.pokemons
       let searchString = this.search
+      let selectedType = this.selectedType
 
-      if (!searchString) {
-        return pokes
+      if (searchString) {
+        searchString = searchString.trim().toLowerCase()
+
+        pokes = pokes.filter((pokemon) => {
+          if (pokemon.name.toLowerCase().includes(searchString)) {
+            return pokemon
+          }
+        })
+      } else if (selectedType) {
+        selectedType = selectedType.trim().toLowerCase()
+
+        pokes = pokes.filter((pokemon) => {
+          if (
+            pokemon.types.find((poke) =>
+              poke.type.name.toLowerCase().includes(selectedType)
+            )
+          ) {
+            return pokemon
+          }
+        })
       }
-      searchString = searchString.trim().toLowerCase()
-
-      pokes = pokes.filter((pokemon) => {
-        if (pokemon.name.toLowerCase().includes(searchString)) {
-          return pokemon
-        }
-      })
-
       return pokes
     },
   },
@@ -119,6 +130,13 @@ export default {
 
   methods: {
     ...mapActions(['fetchPokemons', 'fetchTypes']),
+    mapTypes(types) {
+      return types
+        .map((elem) => {
+          return elem.type.name
+        })
+        .join(',')
+    },
   },
 }
 </script>
