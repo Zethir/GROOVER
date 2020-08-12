@@ -63,7 +63,7 @@ import SearchInput from '@/components/SearchInput'
 import PokemonCards from '@/pages/PokemonCards'
 
 export default {
-  name: 'Main',
+  name: 'Index',
 
   middleware: 'preFetchPokemons',
 
